@@ -1,0 +1,9 @@
+python-dotenv
+flask
+flask-cors
+transformers
+sentence-transformers
+pinecone
+langchain
+bs4
+

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        /* Chatbox styles */
+        #chatbox {
+            width: 300px;
+            height: 400px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        /* Minimize button styles */
+        #minimizeButton {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #f1f1f1;
+            color: #333;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        #minimizeButton:hover {
+            background-color: #ddd;
+        }
+
+        #messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding-right: 10px;
+        }
+
+        #userInput {
+            width: 93%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #sendButton {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #sendButton:hover {
+            background-color: #45a049;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .userMessage {
+            background-color: #d1f7d1;
+            text-align: right;
+        }
+
+        .botMessage {
+            background-color: #e0e0e0;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="chatbox">
+        <button id="minimizeButton">-</button> <!-- Minimize button -->
+        <div id="messages"></div>
+        <input type="text" id="userInput" placeholder="Ask me anything..." />
+        <button id="sendButton">Send</button>
+    </div>
+
+    <script>
+        const sendButton = document.getElementById("sendButton");
+        const userInput = document.getElementById("userInput");
+        const messagesDiv = document.getElementById("messages");
+        const chatbox = document.getElementById("chatbox");
+        const minimizeButton = document.getElementById("minimizeButton");
+
+        // API URL - replace with your backend's URL
+        const apiUrl = "https://80af-51-37-151-128.ngrok-free.app/chat";  // Update this with your ngrok URL or backend URL
+        
+        // Function to add a message to the chatbox
+        function addMessage(message, sender) {
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message");
+            if (sender === "user") {
+                messageDiv.classList.add("userMessage");
+            } else {
+                messageDiv.classList.add("botMessage");
+            }
+            messageDiv.innerText = message;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the bottom
+        }
+
+        // Function to send user query to backend and get the response
+        function sendQuery(query) {
+            // Add user query to chatbox
+            addMessage(query, "user");
+
+            // Send query to backend
+            fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display bot response
+                if (data.response) {
+                    addMessage(data.response, "bot");
+                } else {
+                    addMessage("Sorry, I couldn't get a response.", "bot");
+                }
+            })
+            .catch(error => {
+                addMessage("An error occurred. Please try again later.", "bot");
+                console.error("Error:", error);
+            });
+        }
+
+        // Event listener for the send button
+        sendButton.addEventListener("click", () => {
+            const userQuery = userInput.value.trim();
+            if (userQuery) {
+                sendQuery(userQuery);
+                userInput.value = "";  // Clear the input field
+            }
+        });
+
+        // Optionally, add enter key functionality
+        userInput.addEventListener("keypress", (event) => {
+            if (event.key === "Enter") {
+                const userQuery = userInput.value.trim();
+                if (userQuery) {
+                    sendQuery(userQuery);
+                    userInput.value = "";  // Clear the input field
+                }
+            }
+        });
+
+        // Function to toggle minimize
+        function toggleMinimize() {
+            if (chatbox.style.height === "40px") {
+                chatbox.style.height = "400px"; // Restore the chatbox height
+                minimizeButton.innerText = "-"; // Show "-" to minimize again
+            } else {
+                chatbox.style.height = "40px"; // Minimize chatbox height
+                minimizeButton.innerText = "+"; // Show "+" to restore
+            }
+        }
+
+        // Event listener for the minimize button
+        minimizeButton.addEventListener("click", toggleMinimize);
+    </script>
+
+</body>
+</html>
